@@ -20,7 +20,7 @@
  *  	Imixs Software Solutions GmbH - initial API and implementation
  *  	Ralph Soika
  *******************************************************************************/
-package org.imixs.archive.signature;
+package org.imixs.signature.service;
 
 import java.io.File;
 import java.io.FileInputStream;

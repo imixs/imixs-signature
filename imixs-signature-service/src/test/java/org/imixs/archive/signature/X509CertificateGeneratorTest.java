@@ -9,7 +9,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.imixs.archive.signature.ca.X509CertificateGenerator;
+import org.imixs.signature.ca.X509CertificateGenerator;
+import org.imixs.signature.service.KeystoreService;
 import org.imixs.workflow.exceptions.ModelException;
 import org.imixs.workflow.exceptions.PluginException;
 import org.junit.Assert;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.imixs.archive.signature.pdf.cert;
+package org.imixs.signature.pdf.cert;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

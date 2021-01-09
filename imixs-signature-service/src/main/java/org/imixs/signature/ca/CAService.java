@@ -20,7 +20,7 @@
  *  	Imixs Software Solutions GmbH - initial API and implementation
  *  	Ralph Soika
  *******************************************************************************/
-package org.imixs.archive.signature.ca;
+package org.imixs.signature.ca;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -42,8 +42,8 @@ import javax.inject.Inject;
 
 import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.imixs.archive.signature.KeystoreService;
-import org.imixs.archive.signature.pdf.SigningService;
+import org.imixs.signature.pdf.SigningService;
+import org.imixs.signature.service.KeystoreService;
 import org.imixs.workflow.ItemCollection;
 
 /**

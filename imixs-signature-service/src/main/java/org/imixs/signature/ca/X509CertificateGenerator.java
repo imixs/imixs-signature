@@ -1,4 +1,4 @@
-package org.imixs.archive.signature.ca;
+package org.imixs.signature.ca;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,7 +43,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.encoders.Base64;
-import org.imixs.archive.signature.KeystoreService;
+import org.imixs.signature.service.KeystoreService;
 
 /**
  * The X509CertificateGenerator provides static methods to generate

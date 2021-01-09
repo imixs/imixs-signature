@@ -25,7 +25,7 @@
  *  	Ralph Soika - Software Developer
  *******************************************************************************/
 
-package org.imixs.archive.signature.ca;
+package org.imixs.signature.ca;
 
 import java.io.Serializable;
 import java.util.List;

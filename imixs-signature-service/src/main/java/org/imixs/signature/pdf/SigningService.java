@@ -20,7 +20,7 @@
  *  	Imixs Software Solutions GmbH - initial API and implementation
  *  	Ralph Soika
  *******************************************************************************/
-package org.imixs.archive.signature.pdf;
+package org.imixs.signature.pdf;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -74,10 +74,10 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.imixs.archive.signature.KeystoreService;
-import org.imixs.archive.signature.pdf.cert.CertificateVerificationException;
-import org.imixs.archive.signature.pdf.cert.SigningException;
-import org.imixs.archive.signature.pdf.util.SigUtils;
+import org.imixs.signature.pdf.cert.CertificateVerificationException;
+import org.imixs.signature.pdf.cert.SigningException;
+import org.imixs.signature.pdf.util.SigUtils;
+import org.imixs.signature.service.KeystoreService;
 
 /**
  * The SignatureService provides methods to sign a PDF document on a X509

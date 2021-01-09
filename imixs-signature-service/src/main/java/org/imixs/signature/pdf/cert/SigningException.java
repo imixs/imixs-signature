@@ -1,6 +1,6 @@
-package org.imixs.archive.signature.pdf.cert;
+package org.imixs.signature.pdf.cert;
 
-import org.imixs.archive.signature.pdf.SigningService;
+import org.imixs.signature.pdf.SigningService;
 
 /**
  * A SigningException can be thrown during the signing process. 

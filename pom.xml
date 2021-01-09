@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.imixs.workflow</groupId>
 	<artifactId>imixs-signature</artifactId>
@@ -31,7 +33,7 @@
 				<role>testing</role>
 			</roles>
 			<timezone>2</timezone>
-		</developer>		
+		</developer>
 	</developers>
 
 	<scm>
@@ -62,6 +64,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.imixs.workflow.version>5.2.6</org.imixs.workflow.version>
+		<org.imixs.archive.version>2.2.8</org.imixs.archive.version>
 		<org.imixs.melman.version>1.0.20</org.imixs.melman.version>
 		<!-- 2.0.19 3.0.0-SNAPSHOT -->
 		<apache.pdfbox.version>2.0.21</apache.pdfbox.version>
@@ -231,7 +234,15 @@
 				<scope>provided</scope>
 				<!-- excluded from manifest classpath, and excluded from WEB-INF/lib -->
 			</dependency>
-		
+
+			<!-- Imixs-Archive -->
+			<dependency>
+				<groupId>org.imixs.workflow</groupId>
+				<artifactId>imixs-archive-api</artifactId>
+				<version>${org.imixs.archive.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
 			<!-- -->
 			<dependency>
 				<groupId>org.imixs.workflow</groupId>

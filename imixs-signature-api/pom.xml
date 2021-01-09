@@ -27,6 +27,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+	<!-- Imixs-Archive -->
+		<dependency>
+			<groupId>org.imixs.workflow</groupId>
+			<artifactId>imixs-archive-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 
 	

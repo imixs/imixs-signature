@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.imixs.archive.signature.pdf.util;
+package org.imixs.signature.pdf.util;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -54,8 +54,8 @@ import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
-import org.imixs.archive.signature.pdf.cert.CertificateVerificationException;
-import org.imixs.archive.signature.pdf.cert.CertificateVerifier;
+import org.imixs.signature.pdf.cert.CertificateVerificationException;
+import org.imixs.signature.pdf.cert.CertificateVerifier;
 
 /**
  * Utility class for the signature / timestamp examples.
