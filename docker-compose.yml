@@ -1,0 +1,9 @@
+version: "3.2"
+services:
+
+  imixssignatureservice:
+    image: imixs/imixs-signature-service
+    environment:
+      TZ: "Europe/Berlin"
+    ports:
+      - "8080:8080"
