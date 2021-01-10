@@ -76,7 +76,7 @@ An introduction how signing PDF files works can also be found [here](https://jvm
 
 The SignatureAdapter integrates the *Imixs-Archive Signature API* into a business process based on a Imixs BPMN model. The adapter automatically signs attached PDF documents. 
 
-	org.imixs.archive.signature.workflow.SignatureAdapter
+	org.imixs.signature.adapter.SignatureAdapter
 	
 The SignatureAdapter does throw a PluginException in case not certificate for the current user was not found by the CA Service. The CAService can be used to generate user certificates	based on a root certificate. 
 
@@ -146,15 +146,6 @@ The CAService expects an optional profile document containing the following X509
  - x509.city - City
  - x509.state - State
  - x509.country - Country
-
-
-### X509CertificateAdapter
-
-The *X509CertificateAdapter* SignaAdapter class generates a new certificate based on the x509 attributes stored in the current document.
-
-	org.imixs.archive.signature.workflow.X509CertificateAdapter
-	
-The adapter can be used to explicitly create or update a X509 certificate based on a user profile. In case the SignatureAdapter property 'autocreate' is set to 'true' (default) this adapter is not necessary as the SignalAdapter generates a X509Certificate if necessary .
 
 
 ### The X509ProfileHandler
