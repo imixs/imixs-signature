@@ -131,6 +131,9 @@ public class SignatureAdapter implements SignalAdapter {
                 }
             
 
+                // set signature.count
+                signingWorkitem.setItemValue("signature.count", document.getItemValue("signature.count"));
+                
                 // do we have files matching the file pattern?
                 Pattern filePatternMatcher = Pattern.compile(file_pattern);
                 for (String fileName : fileNames) {
@@ -169,6 +172,10 @@ public class SignatureAdapter implements SignalAdapter {
                             }
                             // force overwriting content...
                             document.appendItemValue(SnapshotService.ITEM_SNAPSHOT_OVERWRITEFILECONTENT, fileName);
+                            
+                            // update signature.count
+                            document.setItemValue("signature.count", signedWorkitem.getItemValue("signature.count"));
+                         
                         }
 
                         logger.info("......signing " + fileName + " successful.");

@@ -210,10 +210,11 @@ public class SignatureResource {
                                     humanRect, "Signature" + signatureCount, signatureImage,
                                     document.getItemValueString(WorkflowKernel.WORKFLOWSTATUS));
 
-                            document.setItemValue("signature.count", signatureCount + 1);
+                            // update signature count
+                            signedDocument.setItemValue("signature.count", signatureCount + 1);
                         }
 
-                        // ad the signed pdf file to the signed workitem
+                        // add the signed pdf file to the signed workitem
                         FileData signedFileData = new FileData(fileName, signedContent, "application/pdf", null);
                         signedDocument.addFileData(signedFileData);
                         logger.info("......" + fileName + " signed");
