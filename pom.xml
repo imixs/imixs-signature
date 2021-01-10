@@ -160,6 +160,11 @@
 	</reporting>
 
 	<profiles>
+	
+		<profile>
+			<id>docker</id>
+		</profile>
+	
 		<!-- Activate using the release property -->
 		<profile>
 			<id>release</id>

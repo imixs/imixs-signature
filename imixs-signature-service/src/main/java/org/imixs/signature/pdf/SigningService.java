@@ -106,7 +106,7 @@ import org.imixs.signature.service.KeystoreService;
  * @author rsoika
  * @version 1.0
  */
-@Stateless
+@Stateless 
 @LocalBean
 public class SigningService {
 

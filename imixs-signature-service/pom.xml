@@ -11,7 +11,11 @@
 	<packaging>war</packaging>
 	<name>Imixs-Signature Microservice</name>
 
-	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<custom.webResources>src/main/webapp</custom.webResources>
+		<root-context>/</root-context>
+	</properties>
 	<profiles>
 		<profile>
 			<!-- for local dev build... -->
@@ -78,35 +82,44 @@
 					</webResources>
 				</configuration>
 			</plugin>
-
 		</plugins>
+
+		<finalName>imixs-signature-service</finalName>
 	</build>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.imixs.workflow</groupId>
 			<artifactId>imixs-workflow-core</artifactId>
+			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.imixs.workflow</groupId>
-			<artifactId>imixs-workflow-engine</artifactId>
-		</dependency>
+		
 
 		<!-- Apache PDFBox -->
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
 			<version>${apache.pdfbox.version}</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
+
+
+			<!--
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcmail-jdk15on</artifactId>
+				<version>1.67</version>
+				<scope>provided</scope>
+			</dependency>		
+-->		
 
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<!-- bcmail-jdk15on bcprov-jdk15on -->
 			<artifactId>bcpkix-jdk15on </artifactId>
-			<optional>true</optional>
 			<version>${bouncycastle.version}</version>
+			<scope>compile</scope>
 		</dependency>
+
 
 	</dependencies>
 </project>

@@ -23,11 +23,8 @@ import javax.ws.rs.core.Response;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.imixs.signature.ca.CAService;
-import org.imixs.signature.ca.X509ProfileHandler;
 import org.imixs.signature.pdf.SigningService;
 import org.imixs.workflow.ItemCollection;
-import org.imixs.workflow.engine.DocumentService;
-import org.imixs.workflow.engine.WorkflowService;
 import org.imixs.workflow.xml.XMLDataCollectionAdapter;
 import org.imixs.workflow.xml.XMLDocument;
 import org.imixs.workflow.xml.XMLDocumentAdapter;
@@ -38,14 +35,14 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  * 
  * @author rsoika
  *
- */
+ */ 
 @Named
 @Path("certificate")
 @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 public class X509CertificateResource {
     public static final String PDF_REGEX = "^.+\\.([pP][dD][fF])$";
 
-    @Inject
+    @Inject 
     @ConfigProperty(name = SigningService.ENV_SIGNATURE_ROOTCERT_ALIAS)
     Optional<String> rootCertAlias;
 
@@ -59,15 +56,8 @@ public class X509CertificateResource {
     @Inject
     CAService caService;
 
-    @Inject
-    WorkflowService workflowService;
-
-    @Inject
-    DocumentService documentService;
-
-    @Inject
-    X509ProfileHandler x509ProfileHandler;
-
+  
+ 
     private static Logger logger = Logger.getLogger(X509CertificateResource.class.getName());
 
     /**

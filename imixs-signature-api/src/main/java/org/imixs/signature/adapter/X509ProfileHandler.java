@@ -25,14 +25,13 @@
  *  	Ralph Soika - Software Developer
  *******************************************************************************/
 
-package org.imixs.signature.ca;
+package org.imixs.signature.adapter;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -57,9 +56,9 @@ public class X509ProfileHandler implements Serializable {
 
     public final static String ENV_SIGNATURE_X509_PROFILE_QUERY = "signature.x509.profile.query";
 
-    @EJB
-    protected DocumentService documentService;
-
+    @Inject
+    DocumentService documentService;
+  
     @Inject
     @ConfigProperty(name = ENV_SIGNATURE_X509_PROFILE_QUERY, defaultValue = "(type:\"profile\") AND (name:\"?\" OR txtname:\"?\")")
     Optional<String> profileQuery;

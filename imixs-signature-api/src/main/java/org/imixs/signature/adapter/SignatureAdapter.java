@@ -1,4 +1,4 @@
-package org.imixs.archive.signature.workflow;
+package org.imixs.signature.adapter;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -57,11 +57,15 @@ public class SignatureAdapter implements SignalAdapter {
     DocumentService documentService;
 
     @Inject
-    ClientHelper clientHelper;
+    DocumentClientFactory clientHelper;
 
     @Inject
     SnapshotService snapshotService;
 
+    @Inject
+    X509ProfileHandler x509ProfileHandler;
+
+    
     private static Logger logger = Logger.getLogger(SignatureAdapter.class.getName());
 
     /**
@@ -74,6 +78,8 @@ public class SignatureAdapter implements SignalAdapter {
         String file_pattern = PDF_REGEX;
 
         DocumentClient documentClient = clientHelper.initDocumentClient();
+        
+        String certAlias = workflowService.getUserName();
 
         try {
             // do we have file attachments?
@@ -113,6 +119,17 @@ public class SignatureAdapter implements SignalAdapter {
                                 evalItemCollection.getItemValueFloat("dimension-h"));
                     }
                 }
+                // lookup the x509 data form the x509ProfileHandler
+                ItemCollection x509Profile = x509ProfileHandler.findX509Profile(certAlias);
+                // copy x509 attributes....
+                if (x509Profile!=null) {
+                    signingWorkitem.setItemValue("x509.o", x509Profile.getItemValue("x509.o"));
+                    signingWorkitem.setItemValue("x509.ou", x509Profile.getItemValue("x509.ou"));
+                    signingWorkitem.setItemValue("x509.city", x509Profile.getItemValue("x509.city"));
+                    signingWorkitem.setItemValue("x509.state", x509Profile.getItemValue("x509.state"));
+                    signingWorkitem.setItemValue("x509.country", x509Profile.getItemValue("x509.country"));
+                }
+            
 
                 // do we have files matching the file pattern?
                 Pattern filePatternMatcher = Pattern.compile(file_pattern);
@@ -123,7 +140,6 @@ public class SignatureAdapter implements SignalAdapter {
 
                         // read the file data...
                         FileData fileData = document.getFileData(fileName);
-
                         byte[] sourceContent = fileData.getContent();
                         if (sourceContent.length == 0) {
                             // load from snapshot
@@ -133,21 +149,19 @@ public class SignatureAdapter implements SignalAdapter {
                         }
 
                         signingWorkitem.addFileData(fileData);
-
-                        String certAlias = workflowService.getUserName();
+                      
+                        signingWorkitem.setItemValue("certAlias", certAlias);
                         FileData fileDataSignature = loadSignatureImageFromProfile(certAlias);
                         if (fileDataSignature != null) {
-
                             signingWorkitem.addFileData(fileDataSignature);
-
                         }
 
                         XMLDocument xmlDataCollection = XMLDocumentAdapter.getDocument(signingWorkitem);
                         // sign pdf....
-                        XMLDataCollection resultDoc = documentClient.postXMLDocument("sign", xmlDataCollection);
+                        XMLDataCollection signedXMLData = documentClient.postXMLDocument("sign", xmlDataCollection);
 
-                        if (resultDoc != null && resultDoc.getDocument().length > 0) {
-                            ItemCollection signedWorkitem = XMLDocumentAdapter.putDocument(resultDoc.getDocument()[0]);
+                        if (signedXMLData != null && signedXMLData.getDocument().length > 0) {
+                            ItemCollection signedWorkitem = XMLDocumentAdapter.putDocument(signedXMLData.getDocument()[0]);
                             // ad the signed pdf file to the workitem
                             List<FileData> fileDataList = signedWorkitem.getFileData();
                             for (FileData signedFileData : fileDataList) {
@@ -157,7 +171,7 @@ public class SignatureAdapter implements SignalAdapter {
                             document.appendItemValue(SnapshotService.ITEM_SNAPSHOT_OVERWRITEFILECONTENT, fileName);
                         }
 
-                        logger.info("......signing " + fileName + " completed!");
+                        logger.info("......signing " + fileName + " successful.");
                     }
                 }
             }
@@ -199,4 +213,6 @@ public class SignatureAdapter implements SignalAdapter {
         return null;
     }
 
+    
+  
 }
