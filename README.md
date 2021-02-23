@@ -124,6 +124,13 @@ The visual signature can be positioned by the following optional parameters:
     <signature name="position-y">650</signature>
     <signature name="dimension-w">170</signature>
     <signature name="dimension-h">50</signature>
+    <signature name="page">1</signature>
+    
+
+In case of multiple signatures the alignment can be set to horizontal (default) or vertical. This auto-alignment option can be deactivated 
+
+    <signature name="verticalAlignment">true</signature>
+    <signature name="autoAlignment">true</signature>
 
 	
 ## The CA Service

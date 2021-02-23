@@ -106,7 +106,7 @@ import org.imixs.signature.service.KeystoreService;
  * @author rsoika
  * @version 1.0
  */
-@Stateless 
+@Stateless
 @LocalBean
 public class SigningService {
 
@@ -149,15 +149,7 @@ public class SigningService {
     public byte[] signPDF(byte[] inputFileData, String certAlias, String certPassword, boolean externalSigning)
             throws CertificateVerificationException, SigningException {
 
-        // Set the signature rectangle
-        // Although PDF coordinates start from the bottom, humans start from the top.
-        // So a human would want to position a signature (x,y) units from the
-        // top left of the displayed page, and the field has a horizontal width and a
-        // vertical height
-        // regardless of page rotation.
-        // Rectangle2D humanRect = new Rectangle2D.Float(50, 660, 170, 50);
-
-        byte[] signedFileData = signPDF(inputFileData, certAlias, certPassword, externalSigning, null, "Signature1",
+        byte[] signedFileData = signPDF(inputFileData, certAlias, certPassword, externalSigning, null, 0, "Signature1",
                 null, null);
 
         return signedFileData;
@@ -174,6 +166,8 @@ public class SigningService {
      *                           signing process
      * @param humanRect          rectangle from a human viewpoint (coordinates start
      *                           at top left)
+     * @param page               page number (beginning with 1) to place the visual
+     *                           signature
      * @param tsaUrl             optional TSA url
      * @param signatureFieldName optional name of an existing (unsigned) signature
      *                           field
@@ -184,7 +178,7 @@ public class SigningService {
      * @throws SigningException
      */
     public byte[] signPDF(byte[] inputFileData, String certAlias, String certPassword, boolean externalSigning,
-            Rectangle2D humanRect, String signatureFieldName, byte[] imageFile, String reason)
+            Rectangle2D humanRect, int page, String signatureFieldName, byte[] imageFile, String reason)
             throws CertificateVerificationException, SigningException {
 
         SignatureOptions signatureOptions = null;
@@ -314,12 +308,18 @@ public class SigningService {
 
             // create visual signature if a signing rect object exists....
             if (rect != null) {
+                // we adjust the page as the templage uses index 0 for the first page
+                if (page>0) {
+                    page--;
+                }
                 signatureOptions.setVisualSignature(
-                        createVisualSignatureTemplate(doc, 0, rect, pdSignature, imageFile, certificateChain));
+                        createVisualSignatureTemplate(doc, page, rect, pdSignature, imageFile, certificateChain));
             } else {
                 logger.info("...Signature Image not provided, no VisualSignature will be added!");
             }
-            signatureOptions.setPage(0);
+            
+            // we place the signatureOpens on the given page 
+            signatureOptions.setPage(page);
             doc.addSignature(pdSignature, signature, signatureOptions);
 
             if (externalSigning) {
@@ -398,6 +398,7 @@ public class SigningService {
     private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, PDRectangle rect,
             PDSignature signature, byte[] imageFile, Certificate[] certificateChain) throws IOException {
         try (PDDocument doc = new PDDocument()) {
+            
             PDPage page = new PDPage(srcDoc.getPage(pageNum).getMediaBox());
             doc.addPage(page);
             PDAcroForm acroForm = new PDAcroForm(doc);
@@ -463,7 +464,7 @@ public class SigningService {
 
                 float w = rect.getWidth();
                 float h = rect.getHeight();
-                
+
                 // draw signature line
                 cs.setStrokingColor(Color.BLACK);
                 cs.moveTo(0, h / 2 - 4); // half height - offset
@@ -506,8 +507,10 @@ public class SigningService {
                 cs.newLine();
                 cs.showText("Date: " + dateFormat.format(signature.getSignDate().getTime()));
                 cs.newLine();
-                cs.showText("Reason: " + reason);
-                cs.endText();
+                if (reason!=null && !reason.isEmpty()) {
+                    cs.showText("Reason: " + reason);
+                    cs.endText();
+                }
             }
 
             // no need to set annotations and /P entry

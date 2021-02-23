@@ -50,6 +50,17 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
 public class SignatureResource {
     public static final String PDF_REGEX = "^.+\\.([pP][dD][fF])$";
 
+    public static final String OPTION_AUTOCREATE = "autocreate";
+    public static final String OPTION_ROOTSIGNATURE = "rootsignature";
+    public static final String OPTION_POSITION_X = "position-x";
+    public static final String OPTION_POSITION_Y = "position-y";
+    public static final String OPTION_DIMENSION_W = "dimension-w";
+    public static final String OPTION_DIMENSION_H = "dimension-h";
+    public static final String OPTION_VERTICAL_ALIGNMENT = "verticalAlignment";
+    public static final String OPTION_AUTO_ALIGNMENT = "autoAlignment";
+    public static final String OPTION_PAGE = "page";
+    public static final String OPTION_FILEPATTERN = "filepattern";
+
     @Inject
     @ConfigProperty(name = SigningService.ENV_SIGNATURE_ROOTCERT_ALIAS)
     Optional<String> rootCertAlias;
@@ -71,11 +82,20 @@ public class SignatureResource {
      * <p>
      * A valid xml document structure is expected with the following items:
      * 
-     * $fileData - containing the pdf file to sign
-     * 
-     * autocreate,rootsignature
-     * 
-     * :
+     * <ul>
+     * <li>$fileData - containing the pdf file to sign
+     * <li>autocreate - true|false
+     * <li>rootsignature - true|false
+     * <li>page - page number for the visual signature (beginning with 1)
+     * <li>position-x
+     * <li>position-y
+     * <li>dimension-w
+     * <li>dimension-h
+     * <li>autoAlignment - automatically alignment of multiple visual signatures
+     * (default true)
+     * <li>verticalAlignment - alignment of multiple visual signatures (default
+     * false)
+     * </ul>
      * 
      * 
      * </p>
@@ -96,9 +116,12 @@ public class SignatureResource {
         float positiony = 700;
         float dimensionw = 170;
         float dimensionh = 100;
+        int page = 0;
+        boolean verticalAlignment = false;
+        boolean autoAlignment = true;
 
         ItemCollection document = XMLDocumentAdapter.putDocument(xmlDocument);
-        ItemCollection signedDocument=new ItemCollection();
+        ItemCollection signedDocument = new ItemCollection();
         try {
             // do we have file attachments?
             List<String> fileNames = document.getFileNames();
@@ -106,27 +129,36 @@ public class SignatureResource {
 
                 // read signature options
 
-                if (document.hasItem("autocreate")) {
-                    autocreate = document.getItemValueBoolean("autocreate");
+                if (document.hasItem(OPTION_AUTOCREATE)) {
+                    autocreate = document.getItemValueBoolean(OPTION_AUTOCREATE);
                 }
-                if (document.hasItem("rootsignature")) {
-                    rootsignature = document.getItemValueBoolean("rootsignature");
+                if (document.hasItem(OPTION_ROOTSIGNATURE)) {
+                    rootsignature = document.getItemValueBoolean(OPTION_ROOTSIGNATURE);
                 }
-                if (document.hasItem("position-x")) {
-                    positionx = document.getItemValueFloat("position-x");
+                if (document.hasItem(OPTION_POSITION_X)) {
+                    positionx = document.getItemValueFloat(OPTION_POSITION_X);
                 }
-                if (document.hasItem("position-y")) {
-                    positiony = document.getItemValueFloat("position-y");
+                if (document.hasItem(OPTION_POSITION_Y)) {
+                    positiony = document.getItemValueFloat(OPTION_POSITION_Y);
                 }
-                if (document.hasItem("dimension-w")) {
-                    dimensionw = document.getItemValueFloat("dimension-w");
+                if (document.hasItem(OPTION_DIMENSION_W)) {
+                    dimensionw = document.getItemValueFloat(OPTION_DIMENSION_W);
                 }
-                if (document.hasItem("dimension-h")) {
-                    dimensionh = document.getItemValueFloat("dimension-h");
+                if (document.hasItem(OPTION_DIMENSION_H)) {
+                    dimensionh = document.getItemValueFloat(OPTION_DIMENSION_H);
                 }
-                if (document.hasItem("filepattern")) {
+                if (document.hasItem(OPTION_VERTICAL_ALIGNMENT)) {
+                    verticalAlignment = document.getItemValueBoolean(OPTION_VERTICAL_ALIGNMENT);
+                }
+                if (document.hasItem(OPTION_AUTO_ALIGNMENT)) {
+                    autoAlignment = document.getItemValueBoolean(OPTION_AUTO_ALIGNMENT);
+                }
+                if (document.hasItem(OPTION_PAGE)) {
+                    page = document.getItemValueInteger(OPTION_PAGE);
+                }
+                if (document.hasItem(OPTION_FILEPATTERN)) {
                     // the file pattern is optional
-                    file_pattern = document.getItemValueString("filepattern");
+                    file_pattern = document.getItemValueString(OPTION_FILEPATTERN);
                 }
 
                 // do we have files matching the file pattern?
@@ -199,15 +231,21 @@ public class SignatureResource {
                                 signatureImage = fileDataSignature.getContent();
                             }
 
-                            // if we have already a signature we move the x position....
+                            // compute vertical / alignment if second visual..
+                            // if we have already a signature we move the y position....
                             int signatureCount = document.getItemValueInteger("signature.count");
-                            if (signatureCount > 0) {
-                                positionx = positionx + (signatureCount * dimensionw + 10);
+                            if (autoAlignment && signatureCount > 0) {
+                                if (verticalAlignment) {
+                                    positiony = positiony + (signatureCount * dimensionh + 10);
+                                } else {
+                                    positionx = positionx + (signatureCount * dimensionw + 10);
+                                }
                             }
+
                             Rectangle2D humanRect = new Rectangle2D.Float(positionx, positiony, dimensionw, dimensionh);
                             // create signature withvisual
                             signedContent = signatureService.signPDF(sourceContent, certAlias, certPassword, false,
-                                    humanRect, "Signature" + signatureCount, signatureImage,
+                                    humanRect, page, "Signature" + signatureCount, signatureImage,
                                     document.getItemValueString(WorkflowKernel.WORKFLOWSTATUS));
 
                             // update signature count
@@ -219,7 +257,7 @@ public class SignatureResource {
                         signedDocument.addFileData(signedFileData);
                         logger.info("......" + fileName + " signed");
                     }
-                   
+
                 }
 
             }
@@ -230,9 +268,9 @@ public class SignatureResource {
             e.printStackTrace();
         }
 
-        
         // return response signedDocument
-        return Response.ok(XMLDataCollectionAdapter.getDataCollection(signedDocument), MediaType.APPLICATION_XML).build();
+        return Response.ok(XMLDataCollectionAdapter.getDataCollection(signedDocument), MediaType.APPLICATION_XML)
+                .build();
     }
 
     /**

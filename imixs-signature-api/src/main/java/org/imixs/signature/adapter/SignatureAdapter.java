@@ -12,6 +12,7 @@ import org.imixs.melman.RestAPIException;
 import org.imixs.workflow.FileData;
 import org.imixs.workflow.ItemCollection;
 import org.imixs.workflow.SignalAdapter;
+import org.imixs.workflow.WorkflowKernel;
 import org.imixs.workflow.engine.DocumentService;
 import org.imixs.workflow.engine.WorkflowService;
 import org.imixs.workflow.exceptions.AdapterException;
@@ -39,6 +40,7 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
         <signature name="position-y">650</signature>
         <signature name="dimension-w">170</signature>
         <signature name="dimension-h">50</signature>
+        <signature name="verticalalignment">true</signature>
         
    }
  * </pre>
@@ -49,6 +51,17 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
 public class SignatureAdapter implements SignalAdapter {
 
     public static final String PDF_REGEX = "^.+\\.([pP][dD][fF])$";
+
+    public static final String OPTION_AUTOCREATE = "autocreate";
+    public static final String OPTION_ROOTSIGNATURE = "rootsignature";
+    public static final String OPTION_POSITION_X = "position-x";
+    public static final String OPTION_POSITION_Y = "position-y";
+    public static final String OPTION_DIMENSION_W = "dimension-w";
+    public static final String OPTION_DIMENSION_H = "dimension-h";
+    public static final String OPTION_VERTICAL_ALIGNMENT = "verticalAlignment";
+    public static final String OPTION_AUTO_ALIGNMENT = "autoAlignment";
+    public static final String OPTION_PAGE = "page";
+    public static final String OPTION_FILEPATTERN = "filepattern";
 
     @Inject
     WorkflowService workflowService;
@@ -65,7 +78,6 @@ public class SignatureAdapter implements SignalAdapter {
     @Inject
     X509ProfileHandler x509ProfileHandler;
 
-    
     private static Logger logger = Logger.getLogger(SignatureAdapter.class.getName());
 
     /**
@@ -78,7 +90,7 @@ public class SignatureAdapter implements SignalAdapter {
         String file_pattern = PDF_REGEX;
 
         DocumentClient documentClient = clientHelper.initDocumentClient();
-        
+
         String certAlias = workflowService.getUserName();
 
         try {
@@ -87,53 +99,68 @@ public class SignatureAdapter implements SignalAdapter {
             if (fileNames.size() > 0) {
 
                 ItemCollection signingWorkitem = new ItemCollection();
+                signingWorkitem.setItemValue(WorkflowKernel.WORKFLOWSTATUS,
+                        document.getItemValueString(WorkflowKernel.WORKFLOWSTATUS));
                 // read signature options
                 ItemCollection evalItemCollection = workflowService.evalWorkflowResult(event, "signature", document,
                         false);
                 if (evalItemCollection != null) {
-                    if (evalItemCollection.hasItem("autocreate")) {
-                        signingWorkitem.setItemValue("autocreate",
-                                evalItemCollection.getItemValueBoolean("autocreate"));
+                    if (evalItemCollection.hasItem(OPTION_AUTOCREATE)) {
+                        signingWorkitem.setItemValue(OPTION_AUTOCREATE,
+                                evalItemCollection.getItemValueBoolean(OPTION_AUTOCREATE));
                     }
-                    if (evalItemCollection.hasItem("rootsignature")) {
-                        signingWorkitem.setItemValue("rootsignature",
-                                evalItemCollection.getItemValueBoolean("rootsignature"));
+                    if (evalItemCollection.hasItem(OPTION_ROOTSIGNATURE)) {
+                        signingWorkitem.setItemValue(OPTION_ROOTSIGNATURE,
+                                evalItemCollection.getItemValueBoolean(OPTION_ROOTSIGNATURE));
                     }
-                    if (evalItemCollection.hasItem("filepattern")) {
-                        signingWorkitem.setItemValue("filepattern",
-                                evalItemCollection.getItemValueString("filepattern"));
+                    if (evalItemCollection.hasItem(OPTION_FILEPATTERN)) {
+                        signingWorkitem.setItemValue(OPTION_FILEPATTERN,
+                                evalItemCollection.getItemValueString(OPTION_FILEPATTERN));
                     }
 
-                    if (evalItemCollection.hasItem("position-x")) {
-                        signingWorkitem.setItemValue("position-x", evalItemCollection.getItemValueFloat("position-x"));
+                    // page and position for visual signature
+                    if (evalItemCollection.hasItem(OPTION_PAGE)) {
+                        signingWorkitem.setItemValue(OPTION_PAGE, evalItemCollection.getItemValueInteger(OPTION_PAGE));
                     }
-                    if (evalItemCollection.hasItem("position-y")) {
-                        signingWorkitem.setItemValue("position-y", evalItemCollection.getItemValueFloat("position-y"));
+                    if (evalItemCollection.hasItem(OPTION_POSITION_X)) {
+                        signingWorkitem.setItemValue(OPTION_POSITION_X,
+                                evalItemCollection.getItemValueFloat(OPTION_POSITION_X));
                     }
-                    if (evalItemCollection.hasItem("dimension-w")) {
-                        signingWorkitem.setItemValue("dimension-w",
-                                evalItemCollection.getItemValueFloat("dimension-w"));
+                    if (evalItemCollection.hasItem(OPTION_POSITION_Y)) {
+                        signingWorkitem.setItemValue(OPTION_POSITION_Y,
+                                evalItemCollection.getItemValueFloat(OPTION_POSITION_Y));
                     }
-                    if (evalItemCollection.hasItem("dimension-h")) {
-                        signingWorkitem.setItemValue("dimension-h",
-                                evalItemCollection.getItemValueFloat("dimension-h"));
+                    if (evalItemCollection.hasItem(OPTION_DIMENSION_W)) {
+                        signingWorkitem.setItemValue(OPTION_DIMENSION_W,
+                                evalItemCollection.getItemValueFloat(OPTION_DIMENSION_W));
+                    }
+                    if (evalItemCollection.hasItem(OPTION_DIMENSION_H)) {
+                        signingWorkitem.setItemValue(OPTION_DIMENSION_H,
+                                evalItemCollection.getItemValueFloat(OPTION_DIMENSION_H));
+                    }
+                    if (evalItemCollection.hasItem(OPTION_VERTICAL_ALIGNMENT)) {
+                        signingWorkitem.setItemValue(OPTION_VERTICAL_ALIGNMENT,
+                                evalItemCollection.getItemValueBoolean(OPTION_VERTICAL_ALIGNMENT));
+                    }
+                    if (evalItemCollection.hasItem(OPTION_AUTO_ALIGNMENT)) {
+                        signingWorkitem.setItemValue(OPTION_AUTO_ALIGNMENT,
+                                evalItemCollection.getItemValueBoolean(OPTION_AUTO_ALIGNMENT));
                     }
                 }
                 // lookup the x509 data form the x509ProfileHandler
                 ItemCollection x509Profile = x509ProfileHandler.findX509Profile(certAlias);
                 // copy x509 attributes....
-                if (x509Profile!=null) {
+                if (x509Profile != null) {
                     signingWorkitem.setItemValue("x509.o", x509Profile.getItemValue("x509.o"));
                     signingWorkitem.setItemValue("x509.ou", x509Profile.getItemValue("x509.ou"));
                     signingWorkitem.setItemValue("x509.city", x509Profile.getItemValue("x509.city"));
                     signingWorkitem.setItemValue("x509.state", x509Profile.getItemValue("x509.state"));
                     signingWorkitem.setItemValue("x509.country", x509Profile.getItemValue("x509.country"));
                 }
-            
 
                 // set signature.count
                 signingWorkitem.setItemValue("signature.count", document.getItemValue("signature.count"));
-                
+
                 // do we have files matching the file pattern?
                 Pattern filePatternMatcher = Pattern.compile(file_pattern);
                 for (String fileName : fileNames) {
@@ -152,7 +179,7 @@ public class SignatureAdapter implements SignalAdapter {
                         }
 
                         signingWorkitem.addFileData(fileData);
-                      
+
                         signingWorkitem.setItemValue("certAlias", certAlias);
                         FileData fileDataSignature = loadSignatureImageFromProfile(certAlias);
                         if (fileDataSignature != null) {
@@ -164,7 +191,8 @@ public class SignatureAdapter implements SignalAdapter {
                         XMLDataCollection signedXMLData = documentClient.postXMLDocument("sign", xmlDataCollection);
 
                         if (signedXMLData != null && signedXMLData.getDocument().length > 0) {
-                            ItemCollection signedWorkitem = XMLDocumentAdapter.putDocument(signedXMLData.getDocument()[0]);
+                            ItemCollection signedWorkitem = XMLDocumentAdapter
+                                    .putDocument(signedXMLData.getDocument()[0]);
                             // ad the signed pdf file to the workitem
                             List<FileData> fileDataList = signedWorkitem.getFileData();
                             for (FileData signedFileData : fileDataList) {
@@ -172,10 +200,10 @@ public class SignatureAdapter implements SignalAdapter {
                             }
                             // force overwriting content...
                             document.appendItemValue(SnapshotService.ITEM_SNAPSHOT_OVERWRITEFILECONTENT, fileName);
-                            
+
                             // update signature.count
                             document.setItemValue("signature.count", signedWorkitem.getItemValue("signature.count"));
-                         
+
                         }
 
                         logger.info("......signing " + fileName + " successful.");
@@ -220,6 +248,4 @@ public class SignatureAdapter implements SignalAdapter {
         return null;
     }
 
-    
-  
 }
