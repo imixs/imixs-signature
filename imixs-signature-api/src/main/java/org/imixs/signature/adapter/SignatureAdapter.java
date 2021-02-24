@@ -151,6 +151,7 @@ public class SignatureAdapter implements SignalAdapter {
                 ItemCollection x509Profile = x509ProfileHandler.findX509Profile(certAlias);
                 // copy x509 attributes....
                 if (x509Profile != null) {
+                    signingWorkitem.setItemValue("x509.cn", x509Profile.getItemValue("txtusername"));
                     signingWorkitem.setItemValue("x509.o", x509Profile.getItemValue("x509.o"));
                     signingWorkitem.setItemValue("x509.ou", x509Profile.getItemValue("x509.ou"));
                     signingWorkitem.setItemValue("x509.city", x509Profile.getItemValue("x509.city"));
@@ -184,6 +185,11 @@ public class SignatureAdapter implements SignalAdapter {
                         FileData fileDataSignature = loadSignatureImageFromProfile(certAlias);
                         if (fileDataSignature != null) {
                             signingWorkitem.addFileData(fileDataSignature);
+                        } else {
+                            // print a warning if no signature image exist...
+                            if (!signingWorkitem.getItemValueBoolean(OPTION_ROOTSIGNATURE)) {
+                                logger.warning("Missing signature image for profile '" + certAlias + "'!");
+                            }
                         }
 
                         XMLDocument xmlDataCollection = XMLDocumentAdapter.getDocument(signingWorkitem);
@@ -235,6 +241,14 @@ public class SignatureAdapter implements SignalAdapter {
                 ItemCollection profile = userProfileList.get(0);
 
                 FileData fileData = snapshotService.getWorkItemFile(profile.getUniqueID(), "signature.jpg");
+                if (fileData==null) {
+                    // try .png
+                    fileData = snapshotService.getWorkItemFile(profile.getUniqueID(), "signature.png");
+                }
+                if (fileData==null) {
+                    // try .gif
+                    fileData = snapshotService.getWorkItemFile(profile.getUniqueID(), "signature.gif");
+                }
                 if (fileData != null && fileData.getContent() != null && fileData.getContent().length > 0) {
                     // we found a signature image!
                     return fileData;

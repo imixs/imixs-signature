@@ -225,9 +225,6 @@ public class SignatureResource {
 
                             FileData fileDataSignature = getSignatureImage(document);
                             if (fileDataSignature != null) {
-                                // resize the signature image to the half of the signature rect
-
-                                // fileDataSignature=resizeSignature(fileDataSignature,(int) (dimensionh/2));
                                 signatureImage = fileDataSignature.getContent();
                             }
 
@@ -275,7 +272,7 @@ public class SignatureResource {
 
     /**
      * This helper method test if the current document holds a signature image. The
-     * expected file name is 'signature.jpg'
+     * expected file name is 'signature.jpg|png|gif'
      * 
      * @param certAlias
      * @return
@@ -283,6 +280,14 @@ public class SignatureResource {
     private FileData getSignatureImage(ItemCollection doc) {
 
         FileData fileData = doc.getFileData("signature.jpg");
+        if (fileData == null) {
+            // try .png
+            fileData = doc.getFileData("signature.png");
+        }
+        if (fileData == null) {
+            // try .gif
+            fileData = doc.getFileData("signature.gif");
+        }
         if (fileData != null && fileData.getContent() != null && fileData.getContent().length > 0) {
             // we found a signature image!
             return fileData;
