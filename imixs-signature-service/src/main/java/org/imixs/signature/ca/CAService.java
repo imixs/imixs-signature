@@ -136,8 +136,9 @@ public class CAService {
         KeyPair issueKeyPair = x509CertificateGenerator.generateKeyPair();
         // extract x509 attributes form optional profile
         if (profile != null) {
-            String cn = profile.getItemValueString("txtusername");
+            String cn = profile.getItemValueString("x509.cn");
             if (cn.isEmpty()) {
+                logger.warning("x509.cn attribute is missing - fallback to '" + alias + "' !");
                 // default to alias
                 cn = alias;
             }
