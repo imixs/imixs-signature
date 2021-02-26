@@ -11,34 +11,51 @@ The implementation is based on the Apache project [PDFBox](https://pdfbox.apache
 
 ## Installation
 
-The *Imixs-Archive Signature API* can be added to the Imixs-Workflow engine with the following maven dependencies:
+The *Imixs-Signature-Service* can be started as a Docker container. See the following example of a docker-compose stack definition:
 
-		<dependency>
-			<groupId>org.imixs.workflow</groupId>
-			<artifactId>imixs-archive-signature</artifactId>
-			<version>${org.imixs.archive.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- Apache PDFBox -->
-		<dependency>
-			<groupId>org.apache.pdfbox</groupId>
-			<artifactId>pdfbox</artifactId>
-			<version>2.0.19</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- Bouncycastle -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-jdk15on</artifactId>
-			<version>1.67</version>
-			<scope>compile</scope>
-		</dependency>
-		
+
+
+	  office:
+	    image: imixs/imixs-office-workflow:latest
+	    environment:
+	      ....
+	      SIGNATURE_SERVICE_ENDPOINT: "http://imixssignature:8080/api"
+	    ports:
+	      - "8080:8080"
+	
+		...	
+	
+	  imixssignature:
+	    image: imixs/imixs-signature-service
+	    environment:
+	      SIGNATURE_KEYSTORE_PATH: "/opt/keys/imixs.jks"
+	      SIGNATURE_KEYSTORE_PASSWORD: "123456" 
+	      SIGNATURE_KEYSTORE_TYPE: "PKCS12"
+	      SIGNATURE_ROOTCERT_ALIAS: "imixs.com"
+	      SIGNATURE_ROOTCERT_PASSWORD: "123456" 
+	    ports:
+	      - "8082:8080"
+	    volumes:
+	      - ./keys:/opt/keys/
+
+The Signature service is defined by the following environment parameters:
+
+
+| Parameter                    | Description                        |
+| ---------------------------- |----------------------------------- |
+| SIGNATURE_KEYSTORE_PATH      | filepath to the java keystore file |
+| SIGNATURE_KEYSTORE_PASSWORD  | password for the java keystore     |
+| SIGNATURE_KEYSTORE_TYPE      | keystore type (PKSC12)             |
+| SIGNATURE_ROOTCERT_ALIAS     | root certificate alias             |
+| SIGNATURE_ROOTCERT_PASSWORD  | root certificate password          |
+
+The next section describes how the java keystore is used by the signature service to sign documents.
+
 
 
 ## Signing a PDF Document
 
-To sign a PDF document, a signature with a X509 certificate is created based on the content of the PDF document. The signature is written back into a new signed version of the origin document. The X509 certificates are stored in a java keystore. 
+To sign a PDF document, a signature based on a X509 certificate is created based on the content of the PDF document. The signature is written back into a new signed version of the origin document. The X509 certificates are stored in a java keystore. 
 
 ### The Keystore
 
@@ -72,6 +89,30 @@ The service adds a didgital signature to a new version of a given PDF document a
 The implementation to sign a PDF document is based on the open source library [PDFBox](https://github.com/apache/pdfbox) and the crypto API [Bouncycastle](http://bouncycastle.org/). General examples how to sign a PDF document with PDFBox including visible signatures can be found [here](https://github.com/apache/pdfbox/tree/trunk/examples/src/main/java/org/apache/pdfbox/examples/signature). 
 An introduction how signing PDF files works can also be found [here](https://jvmfy.com/2018/11/17/how-to-digitally-sign-pdf-files/).
 
+### Maven Dependencies
+
+
+
+The *Imixs-Signature-API* provides a Rest Client ot connect the Imixs-Workflow engine with the Imixs-Signature-Service. The API can be added to the Imixs-Workflow engine with the following maven dependencies:
+
+
+		<!-- Imixs Signature Feature -->
+		<dependency>
+			<groupId>org.imixs.workflow</groupId>
+			<artifactId>imixs-signature-api</artifactId>
+			<version>${org.imixs.signature.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+
+By defining the environment variable 'SIGNATURE_SERVICE_ENDPOINT' the workflow engine can connect to the signature service to sign PDF documents.
+
+
+	# Signature
+	SIGNATURE_SERVICE_ENDPOINT: "http://imixssignature:8080/api"
+	
+	
+	
 ### The Signature Adapter
 
 The SignatureAdapter integrates the *Imixs-Archive Signature API* into a business process based on a Imixs BPMN model. The adapter automatically signs attached PDF documents. 
