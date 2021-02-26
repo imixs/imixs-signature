@@ -89,11 +89,9 @@ The service adds a didgital signature to a new version of a given PDF document a
 The implementation to sign a PDF document is based on the open source library [PDFBox](https://github.com/apache/pdfbox) and the crypto API [Bouncycastle](http://bouncycastle.org/). General examples how to sign a PDF document with PDFBox including visible signatures can be found [here](https://github.com/apache/pdfbox/tree/trunk/examples/src/main/java/org/apache/pdfbox/examples/signature). 
 An introduction how signing PDF files works can also be found [here](https://jvmfy.com/2018/11/17/how-to-digitally-sign-pdf-files/).
 
-### Maven Dependencies
+### The Imixs-Signature API
 
-
-
-The *Imixs-Signature-API* provides a Rest Client ot connect the Imixs-Workflow engine with the Imixs-Signature-Service. The API can be added to the Imixs-Workflow engine with the following maven dependencies:
+The *Imixs-Signature-API* provides a Rest Client to connect the Imixs-Workflow engine with the Imixs-Signature-Service. The API can be added to the Imixs-Workflow engine with the following maven dependencies:
 
 
 		<!-- Imixs Signature Feature -->
@@ -111,7 +109,7 @@ By defining the environment variable 'SIGNATURE_SERVICE_ENDPOINT' the workflow e
 	# Signature
 	SIGNATURE_SERVICE_ENDPOINT: "http://imixssignature:8080/api"
 	
-	
+The API provides an Adapter class to be used in a Imixs BPMN model. The adaper is responsible to send a PDF document to the Imixs-Signature-Service for a signing request. 	
 	
 ### The Signature Adapter
 
