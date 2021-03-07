@@ -161,6 +161,9 @@ public class SignatureResource {
                     file_pattern = document.getItemValueString(OPTION_FILEPATTERN);
                 }
 
+                // signature count used for positioning multiple signatrues
+                int signatureCount = document.getItemValueInteger("signature.count");
+
                 // do we have files matching the file pattern?
                 Pattern filePatternMatcher = Pattern.compile(file_pattern);
                 for (String fileName : fileNames) {
@@ -230,7 +233,7 @@ public class SignatureResource {
 
                             // compute vertical / alignment if second visual..
                             // if we have already a signature we move the y position....
-                            int signatureCount = document.getItemValueInteger("signature.count");
+
                             if (autoAlignment && signatureCount > 0) {
                                 if (verticalAlignment) {
                                     positiony = positiony + (signatureCount * dimensionh + 10);
@@ -245,8 +248,6 @@ public class SignatureResource {
                                     humanRect, page, "Signature" + signatureCount, signatureImage,
                                     document.getItemValueString(WorkflowKernel.WORKFLOWSTATUS));
 
-                            // update signature count
-                            signedDocument.setItemValue("signature.count", signatureCount + 1);
                         }
 
                         // add the signed pdf file to the signed workitem
@@ -255,6 +256,12 @@ public class SignatureResource {
                         logger.info("......" + fileName + " signed");
                     }
 
+                }
+
+                // increase the signature count for placement of multiple signatures
+                if (!rootsignature) {
+                    // increase only for visual signatures...
+                    signedDocument.setItemValue("signature.count", signatureCount + 1);
                 }
 
             }
