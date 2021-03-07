@@ -105,6 +105,12 @@ public class SignatureAdapter implements SignalAdapter {
                 ItemCollection evalItemCollection = workflowService.evalWorkflowResult(event, "signature", document,
                         false);
                 if (evalItemCollection != null) {
+                    // file pattern
+                    if (evalItemCollection.hasItem(OPTION_FILEPATTERN)) {
+                        file_pattern=evalItemCollection.getItemValueString(OPTION_FILEPATTERN);
+                        signingWorkitem.setItemValue(OPTION_FILEPATTERN,file_pattern);
+                    }
+                    // signature options
                     if (evalItemCollection.hasItem(OPTION_AUTOCREATE)) {
                         signingWorkitem.setItemValue(OPTION_AUTOCREATE,
                                 evalItemCollection.getItemValueBoolean(OPTION_AUTOCREATE));
@@ -113,11 +119,6 @@ public class SignatureAdapter implements SignalAdapter {
                         signingWorkitem.setItemValue(OPTION_ROOTSIGNATURE,
                                 evalItemCollection.getItemValueBoolean(OPTION_ROOTSIGNATURE));
                     }
-                    if (evalItemCollection.hasItem(OPTION_FILEPATTERN)) {
-                        signingWorkitem.setItemValue(OPTION_FILEPATTERN,
-                                evalItemCollection.getItemValueString(OPTION_FILEPATTERN));
-                    }
-
                     // page and position for visual signature
                     if (evalItemCollection.hasItem(OPTION_PAGE)) {
                         signingWorkitem.setItemValue(OPTION_PAGE, evalItemCollection.getItemValueInteger(OPTION_PAGE));
@@ -168,6 +169,7 @@ public class SignatureAdapter implements SignalAdapter {
                     // did the file math our file pattern?
                     if (filePatternMatcher.matcher(fileName).find()) {
                         // yes! start signing....
+                        logger.info("......start signing " + fileName + " ...");
 
                         // read the file data...
                         FileData fileData = document.getFileData(fileName);
@@ -178,9 +180,12 @@ public class SignatureAdapter implements SignalAdapter {
                             fileData = snapshot.getFileData(fileName);
                             sourceContent = fileData.getContent();
                         }
-
                         signingWorkitem.addFileData(fileData);
-
+                    }
+                }
+                
+                if (signingWorkitem.getFileData().size()>0) {
+                        // add certificate data
                         signingWorkitem.setItemValue("certAlias", certAlias);
                         FileData fileDataSignature = loadSignatureImageFromProfile(certAlias);
                         if (fileDataSignature != null) {
@@ -203,17 +208,20 @@ public class SignatureAdapter implements SignalAdapter {
                             List<FileData> fileDataList = signedWorkitem.getFileData();
                             for (FileData signedFileData : fileDataList) {
                                 document.addFileData(signedFileData);
+                                logger.info("......signing " + signedFileData.getName() + " successful.");
+                                // force overwriting content...
+                                document.appendItemValue(SnapshotService.ITEM_SNAPSHOT_OVERWRITEFILECONTENT, signedFileData.getName());
                             }
-                            // force overwriting content...
-                            document.appendItemValue(SnapshotService.ITEM_SNAPSHOT_OVERWRITEFILECONTENT, fileName);
 
                             // update signature.count
                             document.setItemValue("signature.count", signedWorkitem.getItemValue("signature.count"));
 
                         }
 
-                        logger.info("......signing " + fileName + " successful.");
-                    }
+                       
+                    
+                } else {
+                    logger.info("......no files are matching the file pattern!");
                 }
             }
         } catch (PluginException | RestAPIException e) {
