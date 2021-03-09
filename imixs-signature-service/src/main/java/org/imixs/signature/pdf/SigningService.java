@@ -309,7 +309,7 @@ public class SigningService {
             // create visual signature if a signing rect object exists....
             if (rect != null) {
                 // we adjust the page as the templage uses index 0 for the first page
-                if (page>0) {
+                if (page > 0) {
                     page--;
                 }
                 signatureOptions.setVisualSignature(
@@ -317,8 +317,8 @@ public class SigningService {
             } else {
                 logger.info("...Signature Image not provided, no VisualSignature will be added!");
             }
-            
-            // we place the signatureOpens on the given page 
+
+            // we place the signatureOpens on the given page
             signatureOptions.setPage(page);
             doc.addSignature(pdSignature, signature, signatureOptions);
 
@@ -397,8 +397,11 @@ public class SigningService {
     // stream.
     private InputStream createVisualSignatureTemplate(PDDocument srcDoc, int pageNum, PDRectangle rect,
             PDSignature signature, byte[] imageFile, Certificate[] certificateChain) throws IOException {
+
+        final int SIGNATURE_DETAILS_OFSET = 40;
+
         try (PDDocument doc = new PDDocument()) {
-            
+
             PDPage page = new PDPage(srcDoc.getPage(pageNum).getMediaBox());
             doc.addPage(page);
             PDAcroForm acroForm = new PDAcroForm(doc);
@@ -421,6 +424,7 @@ public class SigningService {
             form.setFormType(1);
             PDRectangle bbox = new PDRectangle(rect.getWidth(), rect.getHeight());
             float height = bbox.getHeight();
+            float width = bbox.getWidth();
             Matrix initialScale = null;
             switch (srcDoc.getPage(pageNum).getRotation()) {
             case 90:
@@ -443,7 +447,8 @@ public class SigningService {
                 break;
             }
             form.setBBox(bbox);
-            PDFont font = PDType1Font.HELVETICA;// .HELVETICA_BOLD;
+            PDFont fontNormal = PDType1Font.HELVETICA;// .HELVETICA_BOLD;
+            PDFont fontBold = PDType1Font.HELVETICA_BOLD;
 
             // from PDVisualSigBuilder.createAppearanceDictionary()
             PDAppearanceDictionary appearance = new PDAppearanceDictionary();
@@ -459,58 +464,84 @@ public class SigningService {
                 if (initialScale != null) {
                     cs.transform(initialScale);
                 }
-
                 cs.addRect(-5000, -5000, 10000, 10000);
 
-                float w = rect.getWidth();
-                float h = rect.getHeight();
+                // helper border
+//                cs.setStrokingColor(Color.GRAY);
+//                cs.moveTo(0, 0); // half height - offset
+//                cs.lineTo(0, height);
+//                cs.lineTo(width, height);
+//                cs.lineTo(width, 0);
+//                cs.lineTo(0, 0);
+//                cs.stroke();
 
-                // draw signature line
-                cs.setStrokingColor(Color.BLACK);
-                cs.moveTo(0, h / 2 - 4); // half height - offset
-                cs.lineTo(w, h / 2 - 4);
-                cs.stroke();
-
-                // draw signature image
+                // **********************************
+                // * draw signature image
+                // **********************************
                 if (imageFile != null) {
                     // save and restore graphics if the image is too large and needs to be scaled
                     cs.saveGraphicsState();
                     // in the following we scale the content stream so that the
                     // signing image fits into the upper half of the rectangle.
                     PDImageXObject img = PDImageXObject.createFromByteArray(doc, imageFile, null);
-                    float scaleFactor = (rect.getHeight() / 2) / img.getHeight();
+                    
+                    float imageMaxHeight=height-SIGNATURE_DETAILS_OFSET;
+                    float  scaleFactorHeight=imageMaxHeight/ img.getHeight();
+                    float  scaleFactorWidth=width/ img.getWidth();
+                    // find the best fit (width vs. height)
+                    float scaleFactor=scaleFactorHeight;
+                    if (scaleFactorWidth<scaleFactorHeight) {
+                        scaleFactor=scaleFactorWidth;
+                    }
                     cs.transform(Matrix.getScaleInstance(scaleFactor, scaleFactor));
-                    // Place the image at the upper left corner
-                    cs.drawImage(img, 2, img.getHeight());
+                    // Place the image above the SIGNATURE_DETAILS_OFSET
+                    cs.drawImage(img, 0, SIGNATURE_DETAILS_OFSET/scaleFactor);
                     cs.restoreGraphicsState();
                 }
 
-                // draw signature information
-                float fontSize = 8;
-                float leading = fontSize * 1.5f;
+                // **********************************
+                // * draw signature information
+                // **********************************
 
-                // move below the signature line
-                cs.beginText();
-                cs.setFont(font, fontSize);
-                cs.setNonStrokingColor(Color.black);
-                cs.newLineAtOffset(fontSize, height - leading - (rect.getHeight() / 2) - 5);
+                // first draw signature line
+                cs.setStrokingColor(Color.BLACK);
+                cs.moveTo(0, SIGNATURE_DETAILS_OFSET); // height - offset
+                cs.lineTo(width, SIGNATURE_DETAILS_OFSET);
+                cs.stroke();
+
+                // set font
+                float fontSize = 8;
+                float leading = fontSize * 1.3f;
+                cs.setFont(fontBold, fontSize);
                 cs.setLeading(leading);
+
+                // begin text below the signature line
+                cs.beginText();
+                cs.newLineAtOffset(fontSize, SIGNATURE_DETAILS_OFSET - leading); // first line
 
                 X509Certificate cert = (X509Certificate) certificateChain[0];
                 X500Name x500Name = new X500Name(cert.getSubjectX500Principal().getName());
                 RDN cn = x500Name.getRDNs(BCStyle.CN)[0];
                 String name = IETFUtils.valueToString(cn.getFirst().getValue());
-
                 SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd. MMM yyyy HH:mm:ss");
                 String reason = signature.getReason();
-                cs.showText("Signer: " + name);
+
+                cs.showText("Signer: ");
+                cs.setFont(fontNormal, fontSize);
+                cs.showText(name);
                 cs.newLine();
-                cs.showText("Date: " + dateFormat.format(signature.getSignDate().getTime()));
-                cs.newLine();
-                if (reason!=null && !reason.isEmpty()) {
-                    cs.showText("Reason: " + reason);
-                    cs.endText();
+                cs.setFont(fontBold, fontSize);
+                cs.showText("Date: ");
+                cs.setFont(fontNormal, fontSize);
+                cs.showText(dateFormat.format(signature.getSignDate().getTime()));
+                if (reason != null && !reason.isEmpty()) {
+                    cs.newLine();
+                    cs.setFont(fontBold, fontSize);
+                    cs.showText("Reason: ");
+                    cs.setFont(fontNormal, fontSize);
+                    cs.showText(reason);
                 }
+                cs.endText();
             }
 
             // no need to set annotations and /P entry
