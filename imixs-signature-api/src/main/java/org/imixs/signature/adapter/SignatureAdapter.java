@@ -17,7 +17,6 @@ import org.imixs.workflow.engine.DocumentService;
 import org.imixs.workflow.engine.WorkflowService;
 import org.imixs.workflow.exceptions.AdapterException;
 import org.imixs.workflow.exceptions.PluginException;
-import org.imixs.workflow.exceptions.ProcessingErrorException;
 import org.imixs.workflow.exceptions.QueryException;
 import org.imixs.workflow.xml.XMLDataCollection;
 import org.imixs.workflow.xml.XMLDocument;
@@ -50,6 +49,8 @@ import org.imixs.workflow.xml.XMLDocumentAdapter;
  */
 public class SignatureAdapter implements SignalAdapter {
 
+    public static final String ERROR_SIGNATURE_API = "ERROR_SIGNATURE_API";
+    
     public static final String PDF_REGEX = "^.+\\.([pP][dD][fF])$";
 
     public static final String OPTION_AUTOCREATE = "autocreate";
@@ -85,7 +86,7 @@ public class SignatureAdapter implements SignalAdapter {
      * endpoint
      */
     @Override
-    public ItemCollection execute(ItemCollection document, ItemCollection event) throws AdapterException {
+    public ItemCollection execute(ItemCollection document, ItemCollection event) throws AdapterException, PluginException {
 
         String file_pattern = PDF_REGEX;
 
@@ -225,7 +226,9 @@ public class SignatureAdapter implements SignalAdapter {
                 }
             }
         } catch (PluginException | RestAPIException e) {
-            throw new ProcessingErrorException(this.getClass().getSimpleName(), "SIGNING_ERROR", e.getMessage(), e);
+            //throw new ProcessingErrorException(this.getClass().getSimpleName(), "SIGNING_ERROR", e.getMessage(), e);
+            throw new PluginException(this.getClass().getSimpleName(), ERROR_SIGNATURE_API, 
+                    "Signature Error: One of the documents could not be signed!", e);
         }
 
         return document;
