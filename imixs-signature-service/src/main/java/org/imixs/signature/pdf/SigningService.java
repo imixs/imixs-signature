@@ -308,7 +308,7 @@ public class SigningService {
 
             // create visual signature if a signing rect object exists....
             if (rect != null) {
-                // we adjust the page as the templage uses index 0 for the first page
+                // we adjust the page as the template uses index 0 for the first page
                 if (page > 0) {
                     page--;
                 }
