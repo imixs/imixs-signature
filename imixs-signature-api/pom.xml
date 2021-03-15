@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.imixs.workflow</groupId>
     <artifactId>imixs-signature</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>imixs-signature-api</artifactId>
   <name>Imixs-Signature Workflow API</name>
